@@ -2,8 +2,9 @@ from pyglet.gl import *
 from pyglet.graphics import TextureGroup
 from pyglet.window import key, mouse
 
-TEXTURE_PATH = 'player.png'
-PLAYER = pyglet.image.load(TEXTURE_PATH)
+TEXTURE_PATH = ['player.png','bomb.png']
+PLAYER = pyglet.image.load(TEXTURE_PATH[0])
+BOMB = pyglet .image.load(TEXTURE_PATH[1])
 
 class Model(object):
 
@@ -28,29 +29,44 @@ class Model(object):
                 ('c3B', (255,255,255,255,255,255)))
             self.quads.append(quad)
 
-    def show_player(self, player_num):
-        position = self.player[player_num]
-        self._show_player(position)
-
-    def _show_player(self, position):
-        x, y = position
-
 
 class Window(pyglet.window.Window):
     def __init__(self, *args, **kwargs):
         super(Window, self).__init__(*args, **kwargs)
         self.model = Model()
+        self.batch = pyglet.graphics.Batch()
+        self.player = []
+        self.player.append(pyglet.sprite.Sprite(img=PLAYER,batch=self.batch))
+        self.player[0].scale = 50/self.player[0].width
+        self.bomb = []
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol==key.RIGHT and self.player[0].x<self.width-50:
+            self.player[0].x += 50
+        if symbol==key.UP and self.player[0].y<self.height-50:
+            self.player[0].y += 50
+        if symbol==key.LEFT and self.player[0].x>0:
+            self.player[0].x -= 50
+        if symbol==key.DOWN and self.player[0].y>0:
+            self.player[0].y -= 50
+        if symbol==key.W:
+            x = self.player[0].x
+            y = self.player[0].y
+            b = pyglet.sprite.Sprite(img=BOMB,x=x,y=y,batch=self.batch)
+            b.scale = 50/b.width
+            self.bomb.append(b)
+
 
     def on_draw(self):
+        self.clear()
         for quad in self.model.quads:
             quad.draw(pyglet.gl.GL_LINES)
-        sprite = pyglet.sprite.Sprite(img=PLAYER)
-        sprite.scale = 50/sprite.width
-        sprite.draw()
+        self.batch.draw()
 
 def main():
     window = Window(600,600,caption='Pyglet')
     quads = []
+    #pyglet.clock.schedule_interval(update, 1/60)
     pyglet.app.run()
 
 if __name__=='__main__':
